@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Task {
+  id          String      @id @default(cuid())
+  title       String
+  type        TaskType
+  status      TaskStatus  @default(PENDING)
+  priority    Priority    @default(MEDIUM)
+  tags        String[]    @default([])
+  due_at      DateTime?
+  start_at    DateTime?
+  end_at      DateTime?
+  remind_at   DateTime?
+  duration_min Int?
+  notes       String?
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+
+  @@index([status])
+  @@index([due_at])
+  @@index([type])
+}
+
+model InterviewSession {
+  id              String        @id @default(cuid())
+  status          SessionStatus @default(IN_PROGRESS)
+  type            InterviewType
+  topics          String[]
+  level           Level
+  total_questions Int
+  current_index   Int           @default(0)
+  scores          Float[]       @default([])
+  summary         Json?
+  started_at      DateTime      @default(now())
+  completed_at    DateTime?
+  updated_at      DateTime      @updatedAt
+
+  questions InterviewQuestion[]
+
+  @@index([status])
+  @@index([started_at])
+}
+
+model InterviewQuestion {
+  id              String   @id @default(cuid())
+  session_id      String
+  question_id     String
+  question_text   String
+  topic           String
+  subtopic        String
+  user_answer     String?
+  score           Float?
+  evaluation      Json?
+  asked_at        DateTime @default(now())
+  answered_at     DateTime?
+
+  session InterviewSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+
+  @@index([session_id])
+}
+
+model DailyBriefing {
+  id           String   @id @default(cuid())
+  sent_at      DateTime @default(now())
+  task_count   Int
+  summary      String
+  delivered    Boolean  @default(true)
+
+  @@index([sent_at])
+}
+
+enum TaskType {
+  REMINDER
+  CALENDAR_EVENT
+  TODO
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  DONE
+  CANCELLED
+  OVERDUE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  PAUSED
+  ABANDONED
+}
+
+enum InterviewType {
+  TECHNICAL
+  SYSTEM_DESIGN
+  BEHAVIORAL
+  MIXED
+}
+
+enum Level {
+  JUNIOR
+  MID
+  SENIOR
+}

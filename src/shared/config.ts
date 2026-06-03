@@ -4,54 +4,58 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const envSchema = z.object({
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
+  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.string().default("3000"),
 
-  // Telegram
-  TELEGRAM_BOT_TOKEN: z.string().min(1, "TELEGRAM_BOT_TOKEN is required"),
-  TELEGRAM_ALLOWED_USER_ID: z
-    .string()
-    .min(1, "TELEGRAM_ALLOWED_USER_ID is required"),
+  TELEGRAM_BOT_TOKEN: z.string().min(1),
+  TELEGRAM_ALLOWED_USER_ID: z.string().min(1),
 
-  // AI
-  OPENAI_API_KEY: z.string().min(1, "OPENAI_API_KEY is required"),
+  OPENAI_API_KEY: z.string().min(1),
   OPENAI_MODEL: z.string().default("gpt-4o-mini"),
+  OPENAI_INTERVIEW_MODEL: z.string().default("gpt-4o"),
 
-  // Redis
+  DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().default("redis://localhost:6379"),
 
-  // Webhook
   WEBHOOK_URL: z.string().optional(),
+  BRIEFING_HOUR: z.string().default("7"),
+  BRIEFING_MINUTE: z.string().default("0"),
+  TIMEZONE: z.string().default("Asia/Ho_Chi_Minh"),
 });
 
-// Validate khi app khởi động
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error("❌ Invalid environment variables:");
-  console.error(parsed.error.flatten().fieldErrors);
+  console.error("Invalid environment variables:");
+  console.error(JSON.stringify(parsed.error.flatten().fieldErrors, null, 2));
   process.exit(1);
 }
 
+const env = parsed.data;
+
 export const config = {
-  isDev: parsed.data.NODE_ENV === "development",
-  isProd: parsed.data.NODE_ENV === "production",
-  port: parseInt(parsed.data.PORT, 10),
+  isDev: env.NODE_ENV === "development",
+  isProd: env.NODE_ENV === "production",
+  port: parseInt(env.PORT, 10),
 
   telegram: {
-    botToken: parsed.data.TELEGRAM_BOT_TOKEN,
-    allowedUserId: parseInt(parsed.data.TELEGRAM_ALLOWED_USER_ID, 10),
-    webhookUrl: parsed.data.WEBHOOK_URL,
+    botToken: env.TELEGRAM_BOT_TOKEN,
+    allowedUserId: parseInt(env.TELEGRAM_ALLOWED_USER_ID, 10),
+    webhookUrl: env.WEBHOOK_URL,
   },
 
   ai: {
-    apiKey: parsed.data.OPENAI_API_KEY,
-    model: parsed.data.OPENAI_MODEL,
+    apiKey: env.OPENAI_API_KEY,
+    model: env.OPENAI_MODEL,
+    interviewModel: env.OPENAI_INTERVIEW_MODEL,
   },
 
-  redis: {
-    url: parsed.data.REDIS_URL,
+  db: { url: env.DATABASE_URL },
+  redis: { url: env.REDIS_URL },
+
+  briefing: {
+    hour: parseInt(env.BRIEFING_HOUR, 10),
+    minute: parseInt(env.BRIEFING_MINUTE, 10),
+    timezone: env.TIMEZONE,
   },
 } as const;
