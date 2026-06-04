@@ -2,15 +2,16 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/index.js";
 import { logger } from "../shared/logger.js";
+import { config } from "../shared/config.js";
 
 function createPrismaClient() {
   const adapter = new PrismaPg({
-    connectionString: process.env.DATABASE_URL!,
+    connectionString: config.db.url,
   });
   return new PrismaClient({
     adapter,
     log: [
-      { level: "query", emit: "stdout" },
+      { level: "query", emit: "event" },
       { level: "error", emit: "stdout" },
       { level: "warn", emit: "stdout" },
     ],

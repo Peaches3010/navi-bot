@@ -7,6 +7,16 @@ const DEFAULT_SESSION: SessionData = {
 };
 
 const store = new Map<number, SessionData>();
+const cleanupStaleSession = (): void => {
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  for (const [userId, session] of store) {
+    if (new Date(session.last_activity_at).getTime() < cutoff) {
+      store.delete(userId);
+    }
+  }
+}
+
+setInterval(cleanupStaleSession, 60 * 60 * 1000);
 
 export const sessionStore = {
   get(userId: number): SessionData {
