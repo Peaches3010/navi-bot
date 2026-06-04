@@ -12,7 +12,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      models: read
 
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +20,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
@@ -37,12 +36,12 @@ jobs:
 
       - name: AI Code Review
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: node scripts/ai-review.mjs
 
       - name: AI Generate Unit Tests
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.base_ref }}
         run: node scripts/ai-gen-tests.mjs
